@@ -1,12 +1,17 @@
+package cz.czechitas.java2webapps.ukol2.controller;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.io.IOException;
+
 
 @Controller
 public class StrankaController {
@@ -15,19 +20,32 @@ public class StrankaController {
             "https://source.unsplash.com/1600x900/?nature"
     };
 
-    private List<String> citaty;
 
-    public StrankaController() {
+    private static List<String> citaty;
+
+    static {
         try {
-            // Načtení citátů ze souboru
-            this.citaty = Files.readAllLines(Paths.get("citaty.txt"));
-        } catch (IOException e) {
-            // Pokud nastane chyba při načítání citátů, není možné pokračovat, proto program ukončíme.
-            throw new RuntimeException("Chyba při načítání citátů ze souboru.", e);
+            citaty = readAllLines("citaty.txt");
+        } catch (Exception e) {
+            throw new RuntimeException("Error loading quotes from file: citaty.txt", e);
         }
     }
 
-    @GetMapping("/stranka")
+
+    private static List<String> readAllLines(String resource) throws IOException {
+
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+
+        try (InputStream inputStream = classLoader.getResourceAsStream(resource);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+
+            return reader.lines().collect(Collectors.toList());
+        }
+    }
+
+    @GetMapping("/")
     public ModelAndView zobrazStranku() {
         ModelAndView model = new ModelAndView("index");
         Random random = new Random();

@@ -1,41 +1,41 @@
-
-package controller;
-
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.ModelAndView;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Random;
 
 @Controller
 public class StrankaController {
 
     private static final String[] OBRAZKY = {
-            "https://source.unsplash.com/1600x900/?nature",
-            "https://source.unsplash.com/1600x900/?technology",
-            "https://source.unsplash.com/1600x900/?travel",
-            // další odkazy na obrázky...
+            "https://source.unsplash.com/1600x900/?nature"
     };
 
-    private static final String[] CITATY = {
-            "Citát 1",
-            "Citát 2",
-            "Citát 3",
-            // další citáty...
-    };
+    private List<String> citaty;
+
+    public StrankaController() {
+        try {
+            // Načtení citátů ze souboru
+            this.citaty = Files.readAllLines(Paths.get("citaty.txt"));
+        } catch (IOException e) {
+            // Pokud nastane chyba při načítání citátů, není možné pokračovat, proto program ukončíme.
+            throw new RuntimeException("Chyba při načítání citátů ze souboru.", e);
+        }
+    }
 
     @GetMapping("/stranka")
-    public String zobrazStranku(Model model) {
+    public ModelAndView zobrazStranku() {
+        ModelAndView model = new ModelAndView("index");
         Random random = new Random();
-        int indexObrazku = random.nextInt(OBRAZKY.length);
-        int indexCitatu = random.nextInt(CITATY.length);
-
-        String obrazek = OBRAZKY[indexObrazku];
-        String citat = CITATY[indexCitatu];
-
-        model.addAttribute("obrazek", obrazek);
-        model.addAttribute("citat", citat);
-
-        return "stranka";
+        int indexCitatu = random.nextInt(citaty.size());
+        String citat = citaty.get(indexCitatu);
+        String obrazek = OBRAZKY[random.nextInt(OBRAZKY.length)];
+        model.addObject("obrazek", obrazek);
+        model.addObject("citat", citat);
+        return model;
     }
 }
